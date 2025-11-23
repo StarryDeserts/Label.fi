@@ -23,18 +23,18 @@ export function WalletButton() {
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-4">
         {currentAccount && (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-mono">
+          <div className="px-4 py-2 glass dark:glass-dark rounded-lg text-sm font-mono font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
             {truncateAddress(currentAccount.address)}
           </div>
         )}
         <ConnectButton connectText="Connect Wallet" />
       </div>
       {error && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md">
-          <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+        <div className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>
           <button
             onClick={clearError}
-            className="text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100"
+            className="text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100 transition-colors"
             aria-label="Dismiss error"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

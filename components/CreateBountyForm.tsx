@@ -244,8 +244,13 @@ export function CreateBountyForm() {
 
   if (!isConnected) {
     return (
-      <div className="bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
-        <p className="text-zinc-600 dark:text-zinc-400 text-center">
+      <div className="glass dark:glass-dark rounded-xl p-8 text-center shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
           Please connect your wallet to create a bounty
         </p>
       </div>
@@ -253,8 +258,8 @@ export function CreateBountyForm() {
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
-      <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">
+    <div className="glass dark:glass-dark rounded-xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-8">
         Create Dataset Bounty
       </h2>
 
@@ -283,7 +288,7 @@ export function CreateBountyForm() {
                 nameInputRef.current = e.target;
               }
             })}
-            className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="w-full px-4 py-3 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all"
             placeholder="e.g., Cat vs Dog Classification"
           />
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
@@ -317,7 +322,7 @@ export function CreateBountyForm() {
                     value={entry.fileName}
                     onChange={(e) => updateFileEntry(index, 'fileName', e.target.value)}
                     tabIndex={2 + index * 2}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+                    className="w-full px-4 py-3 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all"
                     placeholder="e.g., image001.jpg"
                     aria-label={`File name ${index + 1}`}
                   />
@@ -327,7 +332,7 @@ export function CreateBountyForm() {
                     value={entry.blobId}
                     onChange={(e) => updateFileEntry(index, 'blobId', e.target.value)}
                     tabIndex={3 + index * 2}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+                    className="w-full px-4 py-3 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all"
                     placeholder="Walrus blob ID"
                     aria-label={`Blob ID ${index + 1}`}
                   />
@@ -336,7 +341,7 @@ export function CreateBountyForm() {
                   <button
                     type="button"
                     onClick={() => removeFileEntry(index)}
-                    className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/50 backdrop-blur-sm rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
                     aria-label={`Remove file entry ${index + 1}`}
                   >
                     Remove
@@ -361,7 +366,7 @@ export function CreateBountyForm() {
           <button
             type="button"
             onClick={addFileEntry}
-            className="mt-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-3 px-5 py-2.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             + Add File
           </button>
@@ -386,7 +391,7 @@ export function CreateBountyForm() {
                 <input
                   value={label}
                   onChange={(e) => updateLabel(index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+                  className="flex-1 px-4 py-3 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all"
                   placeholder="e.g., cat, dog, bird"
                   aria-label={`Label ${index + 1}`}
                 />
@@ -394,7 +399,7 @@ export function CreateBountyForm() {
                   <button
                     type="button"
                     onClick={() => removeLabel(index)}
-                    className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/50 backdrop-blur-sm rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
                     aria-label={`Remove label ${index + 1}`}
                   >
                     Remove
@@ -414,7 +419,7 @@ export function CreateBountyForm() {
           <button
             type="button"
             onClick={addLabel}
-            className="mt-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-3 px-5 py-2.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             + Add Label
           </button>
@@ -437,7 +442,7 @@ export function CreateBountyForm() {
             id="totalImages"
             type="number"
             {...register('totalImages', { valueAsNumber: true })}
-            className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="w-full px-4 py-3 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all"
             placeholder="e.g., 100"
             min="1"
           />
@@ -469,7 +474,7 @@ export function CreateBountyForm() {
             type="number"
             step="0.01"
             {...register('rewardAmount', { valueAsNumber: true })}
-            className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+            className="w-full px-4 py-3 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all"
             placeholder="e.g., 0.5"
             min="0.01"
           />
@@ -486,11 +491,11 @@ export function CreateBountyForm() {
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="w-full px-4 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed disabled:text-zinc-500 disabled:hover:bg-zinc-300 dark:disabled:hover:bg-zinc-700 transition-all"
+          className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>

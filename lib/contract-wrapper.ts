@@ -10,7 +10,7 @@ import {
     SuiParsedData,
     SuiObjectData,
 } from "@mysten/sui/client";
-import { DatasetBounty, CreateBountyEvent, State } from "../types/sui-contract"
+import { DatasetBounty, CreateBountyEvent, DynamicField, State } from "../types/sui-contract"
 
 const suiClient = new SuiClient({
   url: getFullnodeUrl("testnet"),
@@ -88,6 +88,30 @@ export const queryStakePoolInfo = async (bounty_id: string) => {
 
   return bounty;
 }
+export const queryDynamicField = async (object_id: string) => {
+    const dynamicFieldInfoContent = await suiClient.getObject({
+    id: object_id,
+    options: {
+      showContent: true,
+    },
+  });
+
+  if (!dynamicFieldInfoContent.data?.content) {
+    throw new Error("Bounty content not found");
+  }
+
+  const parsedDynamicField= dynamicFieldInfoContent.data.content as SuiParsedData;
+  if (!("fields" in parsedDynamicField)) {
+    throw new Error("Invalid bounty data structure");
+  }
+
+  const dynamicField = parsedDynamicField.fields as unknown as DynamicField;
+  if (!dynamicField) {
+    throw new Error("Invalid bounty data structure");
+  }
+
+  return dynamicField;
+}
 
 export const queryDatabaseData = async (dataId: string) => {
   const data = await suiClient.getDynamicFields({
@@ -118,6 +142,8 @@ export const queryCreateBountyEvent: () => Promise<State> = async () => {
   console.log(state);
   return state;
 };
+
+
 
 /**
  * Creates a bounty transaction

@@ -67,6 +67,12 @@ export interface State {
   bountys: CreateBountyEvent[];
 }
 
+export type DynamicField = {
+  id: { id: string };
+  name: string;
+  value: string;
+}
+
 export type CreateBountyEvent = {
   id: string;
   name: string;
