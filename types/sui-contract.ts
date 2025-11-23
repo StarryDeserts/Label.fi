@@ -47,25 +47,31 @@ export interface LabelFinalizedEvent {
 
 export type SuiEvent = LabelFinalizedEvent;
 
-// Smart Contract Object Types
-export interface DatasetBounty {
-  id: string;
+
+export type DatasetBounty = {
+  id: { id: string };
   name: string;
-  fileNames: string[];
-  blobIds: string[];
-  allowedLabels: string[];
-  totalImages: number;
-  reward: string; // Coin object ID
+  allowed_labels: string[];
+  walrus_bolb_ids: {
+    fields: {
+      id: { id: string };
+      size: string;
+    };
+  };
+  reward_pool: number;
+  total_images: number;
+  completed_counts: number;
+};
+
+export interface State {
+  bountys: CreateBountyEvent[];
 }
 
-// Form Data Types
-export interface CreateBountyFormData {
+export type CreateBountyEvent = {
+  id: string;
   name: string;
-  fileNames: string[];
-  blobIds: string[];
-  allowedLabels: string[];
-  totalImages: number;
-  rewardAmount: number;
+  allowed_labels: string[];
+  total_images: number;
 }
 
 export interface SubmitLabelFormData {

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DataPact - Sui Data Bounty",
+  title: "Label.fi - Sui Data Bounty",
   description: "Create and manage data labeling bounties on Sui",
 };
 

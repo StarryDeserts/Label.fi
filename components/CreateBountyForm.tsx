@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createBountySchema } from '@/lib/validation-schemas';
 import { useWallet } from '@/lib/wallet-context';
 import { useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit';
-import { createTransactionService } from '@/lib/transaction-service';
 import { useState, useRef } from 'react';
 import type { TransactionResult } from '@/types/sui-contract';
 import { z } from 'zod';
@@ -13,6 +12,7 @@ import { TransactionStatus } from './transaction-status';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { Tooltip } from './tooltip';
 import { toast } from 'sonner';
+import { createBountyTransaction } from '@/lib/contract-wrapper';
 
 type CreateBountyFormData = z.infer<typeof createBountySchema>;
 
@@ -86,17 +86,18 @@ export function CreateBountyForm() {
     try {
       console.log('[CreateBountyForm] Starting bounty creation', { name: data.name });
       
-      const transactionService = createTransactionService(suiClient);
       const rewardAmountInMist = Math.floor(data.rewardAmount * 1_000_000_000);
 
-      const tx = transactionService.buildCreateBountyTransaction({
-        name: data.name,
-        fileNameList: data.fileNames,
-        blobIds: data.blobIds,
-        allowedLabels: data.allowedLabels,
-        totalImages: data.totalImages,
-        rewardAmount: rewardAmountInMist,
-      });
+      // Use the createBountyTransaction function
+      const tx = await createBountyTransaction(
+        address,
+        data.name,
+        data.fileNames,
+        data.blobIds,
+        data.allowedLabels,
+        rewardAmountInMist,
+        data.totalImages
+      );
 
       signAndExecute(
         { transaction: tx },
@@ -105,18 +106,32 @@ export function CreateBountyForm() {
             try {
               console.log('[CreateBountyForm] Transaction signed, waiting for confirmation', { digest: result.digest });
               
-              // Use retry logic for waiting for transaction
-              const txResponse = await transactionService.waitForTransactionWithRetry(result.digest);
+              // Wait for transaction confirmation
+              const txResponse = await suiClient.waitForTransaction({
+                digest: result.digest,
+                options: {
+                  showEffects: true,
+                  showEvents: true,
+                  showObjectChanges: true,
+                },
+              });
               
-              const parsedResult = transactionService.parseTransactionResponse(txResponse);
-              setTransactionState(parsedResult);
-              setIsSubmitting(false);
+              // Check if transaction was successful
+              const success = txResponse.effects?.status?.status === 'success';
               
-              if (parsedResult.success) {
-                console.log('[CreateBountyForm] Bounty created successfully', { objectId: parsedResult.objectId });
+              if (success) {
+                // Extract created object ID
+                const objectId = txResponse.effects?.created?.[0]?.reference?.objectId;
+                
+                console.log('[CreateBountyForm] Bounty created successfully', { objectId });
+                setTransactionState({
+                  success: true,
+                  digest: result.digest,
+                  objectId,
+                });
                 toast.success('Bounty created successfully!', { 
                   id: 'create-bounty',
-                  description: parsedResult.objectId ? `Object ID: ${parsedResult.objectId.slice(0, 10)}...` : undefined
+                  description: objectId ? `Object ID: ${objectId.slice(0, 10)}...` : undefined
                 });
                 reset();
                 setFileEntries([{ fileName: '', blobId: '' }]);
@@ -124,12 +139,18 @@ export function CreateBountyForm() {
                 // Focus back to name input for next entry
                 setTimeout(() => nameInputRef.current?.focus(), 100);
               } else {
-                console.error('[CreateBountyForm] Bounty creation failed', { error: parsedResult.error });
+                const errorMsg = txResponse.effects?.status?.error || 'Transaction failed';
+                console.error('[CreateBountyForm] Bounty creation failed', { error: errorMsg });
+                setTransactionState({
+                  success: false,
+                  error: errorMsg,
+                });
                 toast.error('Bounty creation failed', { 
                   id: 'create-bounty',
-                  description: parsedResult.error 
+                  description: errorMsg 
                 });
               }
+              setIsSubmitting(false);
             } catch (error) {
               console.error('[CreateBountyForm] Error waiting for transaction', error);
               const errorMsg = error instanceof Error ? error.message : 'Failed to fetch transaction details';

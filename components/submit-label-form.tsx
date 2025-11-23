@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { submitLabelSchema } from '@/lib/validation-schemas';
 import { useWallet } from '@/lib/wallet-context';
 import { useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit';
-import { createTransactionService } from '@/lib/transaction-service';
 import { useState, useRef } from 'react';
 import type { TransactionResult } from '@/types/sui-contract';
 import { z } from 'zod';
@@ -13,6 +12,8 @@ import { TransactionStatus } from './transaction-status';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { Tooltip } from './tooltip';
 import { toast } from 'sonner';
+import { submitLabelTransaction, queryStakePoolInfo } from '@/lib/contract-wrapper';
+import { useEffect } from 'react';
 
 type SubmitLabelFormData = z.infer<typeof submitLabelSchema>;
 
@@ -25,12 +26,16 @@ export function SubmitLabelForm() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<SubmitLabelFormData | null>(null);
   const bountyIdInputRef = useRef<HTMLInputElement>(null);
+  const [allowedLabels, setAllowedLabels] = useState<string[]>([]);
+  const [loadingLabels, setLoadingLabels] = useState(false);
+  const [selectedBountyId, setSelectedBountyId] = useState('');
 
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
     reset,
+    watch,
   } = useForm<SubmitLabelFormData>({
     resolver: zodResolver(submitLabelSchema),
     mode: 'onChange',
@@ -40,6 +45,8 @@ export function SubmitLabelForm() {
       label: '',
     },
   });
+
+  const bountyObjectId = watch('bountyObjectId');
 
   const handleFormSubmit = (data: SubmitLabelFormData) => {
     // Show confirmation dialog before submitting
@@ -58,6 +65,40 @@ export function SubmitLabelForm() {
     setShowConfirmDialog(false);
     setPendingFormData(null);
   };
+
+  // 当 bountyObjectId 改变时，加载 allowed labels
+  useEffect(() => {
+    const loadAllowedLabels = async () => {
+      if (!bountyObjectId || bountyObjectId.length < 10) {
+        setAllowedLabels([]);
+        return;
+      }
+
+      if (bountyObjectId === selectedBountyId) {
+        return; // 已经加载过了
+      }
+
+      try {
+        setLoadingLabels(true);
+        console.log('[SubmitLabelForm] Loading allowed labels for bounty:', bountyObjectId);
+        
+        const bountyInfo = await queryStakePoolInfo(bountyObjectId);
+        setAllowedLabels(bountyInfo.allowed_labels);
+        setSelectedBountyId(bountyObjectId);
+        
+        console.log('[SubmitLabelForm] Loaded allowed labels:', bountyInfo.allowed_labels);
+        toast.success(`Loaded ${bountyInfo.allowed_labels.length} allowed labels`);
+      } catch (error) {
+        console.error('[SubmitLabelForm] Error loading allowed labels:', error);
+        setAllowedLabels([]);
+        toast.error('Failed to load allowed labels for this bounty');
+      } finally {
+        setLoadingLabels(false);
+      }
+    };
+
+    loadAllowedLabels();
+  }, [bountyObjectId, selectedBountyId]);
 
   const onSubmit = async (data: SubmitLabelFormData) => {
     if (!isConnected || !address) {
@@ -81,13 +122,12 @@ export function SubmitLabelForm() {
         label: data.label 
       });
       
-      const transactionService = createTransactionService(suiClient);
-
-      const tx = transactionService.buildSubmitLabelTransaction({
-        bountyObjectId: data.bountyObjectId,
-        fileName: data.fileName,
-        label: data.label,
-      });
+      // Use the submitLabelTransaction function
+      const tx = await submitLabelTransaction(
+        data.bountyObjectId,
+        data.fileName,
+        data.label
+      );
 
       signAndExecute(
         { transaction: tx },
@@ -96,18 +136,31 @@ export function SubmitLabelForm() {
             try {
               console.log('[SubmitLabelForm] Transaction signed, waiting for confirmation', { digest: result.digest });
               
-              // Use retry logic for waiting for transaction
-              const txResponse = await transactionService.waitForTransactionWithRetry(result.digest);
+              // Wait for transaction confirmation
+              const txResponse = await suiClient.waitForTransaction({
+                digest: result.digest,
+                options: {
+                  showEffects: true,
+                  showEvents: true,
+                  showObjectChanges: true,
+                },
+              });
               
-              const parsedResult = transactionService.parseTransactionResponse(txResponse);
-              setTransactionState(parsedResult);
-              setIsSubmitting(false);
+              // Check if transaction was successful
+              const success = txResponse.effects?.status?.status === 'success';
               
-              if (parsedResult.success) {
+              if (success) {
+                // Check for LabelFinalizedEvent
+                const hasEvent = txResponse.events?.some(e => e.type.includes('LabelFinalizedEvent'));
+                
                 console.log('[SubmitLabelForm] Label submitted successfully', { 
-                  events: parsedResult.events?.length 
+                  hasEvent,
+                  eventsCount: txResponse.events?.length 
                 });
-                const hasEvent = parsedResult.events && parsedResult.events.length > 0;
+                setTransactionState({
+                  success: true,
+                  digest: result.digest,
+                });
                 toast.success('Label submitted successfully!', { 
                   id: 'submit-label',
                   description: hasEvent ? 'Label finalized event detected' : undefined
@@ -116,12 +169,18 @@ export function SubmitLabelForm() {
                 // Focus back to bounty ID input for next entry
                 setTimeout(() => bountyIdInputRef.current?.focus(), 100);
               } else {
-                console.error('[SubmitLabelForm] Label submission failed', { error: parsedResult.error });
+                const errorMsg = txResponse.effects?.status?.error || 'Transaction failed';
+                console.error('[SubmitLabelForm] Label submission failed', { error: errorMsg });
+                setTransactionState({
+                  success: false,
+                  error: errorMsg,
+                });
                 toast.error('Label submission failed', { 
                   id: 'submit-label',
-                  description: parsedResult.error 
+                  description: errorMsg 
                 });
               }
+              setIsSubmitting(false);
             } catch (error) {
               console.error('[SubmitLabelForm] Error waiting for transaction', error);
               const errorMsg = error instanceof Error ? error.message : 'Failed to fetch transaction details';
@@ -268,16 +327,26 @@ export function SubmitLabelForm() {
             id="label"
             tabIndex={3}
             {...register('label')}
-            className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors cursor-pointer"
+            disabled={loadingLabels || allowedLabels.length === 0}
+            className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">Select a label</option>
-            <option value="cat">Cat</option>
-            <option value="dog">Dog</option>
-            <option value="bird">Bird</option>
-            <option value="other">Other</option>
+            <option value="">
+              {loadingLabels 
+                ? 'Loading labels...' 
+                : allowedLabels.length === 0 
+                ? 'Enter a valid Bounty ID first' 
+                : 'Select a label'}
+            </option>
+            {allowedLabels.map((label, index) => (
+              <option key={index} value={label}>
+                {label}
+              </option>
+            ))}
           </select>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Select from the allowed labels defined in the bounty
+            {allowedLabels.length > 0 
+              ? `${allowedLabels.length} allowed labels for this bounty` 
+              : 'Labels will load automatically when you enter a Bounty ID'}
           </p>
           {errors.label && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
