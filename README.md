@@ -40,7 +40,5 @@ Label.fi's mission extends beyond creating a fairer, decentralized data marketpl
 - **Blockchain & Payments:** Sui Network (Move Smart Contracts)
 - **Decentralized Storage:** Walrus
 - **Privacy & Encryption:** Seal Protocol
-- **Frontend:** [e.g., React, Next.js, Sui dApp Kit]
-- **Backend:** [e.g., Node.js, Rust]
 
 
